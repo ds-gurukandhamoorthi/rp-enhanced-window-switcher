@@ -9,11 +9,10 @@ fn main() {
     let program_to_execute = args.next().unwrap();
 
 
-    let output = Command::new("ratpoison").arg("-c").arg("windows %c,%n,%l,%s,%a,%t").output().ok().expect("Failed to retrieve list of windows from Ratpoison");
+    let output = Command::new("ratpoison").arg("-c").arg("windows %c,%n,%l,%s,%a,%t").output().expect("Failed to retrieve list of windows from Ratpoison");
     let output = String::from_utf8_lossy(output.stdout.as_slice());
     let window_searched_for = output.lines()
-        .filter(|l| l.starts_with(&search_for_class))
-        .nth(0);
+        .find(|l| l.starts_with(&search_for_class));
 
     match window_searched_for {
         Some(window) => {
@@ -21,7 +20,7 @@ fn main() {
             fields.next();
             let window_number = fields.next().unwrap();
             let rp_command = format!("select {}", window_number);
-            Command::new("ratpoison").arg("-c").arg(rp_command).output().ok().expect("Failed to switch windows in Ratpoison");
+            Command::new("ratpoison").arg("-c").arg(rp_command).output().expect("Failed to switch windows in Ratpoison");
         },
         None => {Command::new(program_to_execute).spawn().expect("Failed to open program");},
     }
