@@ -63,6 +63,7 @@ fn main() {
 
     let search_for_class = args.next().unwrap();
     let program_to_execute = args.next().unwrap();
+    let extra_args: Vec<String> = args.collect();
 
 
     let output = Command::new("ratpoison").arg("-c").arg("windows %c,%n,%l,%s,%S,%a,%t").output();
@@ -90,6 +91,6 @@ fn main() {
             let rp_command = format!("select {}", window_number);
             Command::new("ratpoison").arg("-c").arg(rp_command).output().expect("Failed to switch windows in Ratpoison");
         },
-        None => {Command::new(program_to_execute).spawn().expect("Failed to open program");},
+        None => {Command::new(program_to_execute).args(&extra_args).spawn().expect("Failed to open program");},
     }
 }
