@@ -2,59 +2,18 @@ use std::env;
 use std::process::Command;
 use std::process;
 
-#[derive(Debug)]
-struct WinInfo <'a> {
-    classname: &'a str,
-    application_name: &'a str,
+use serde::Deserialize;
+
+//order is important as w use serde and csv format with no headers
+#[derive(Debug, Deserialize)]
+struct WinInfo {
+    classname: String,
     number: u32,
     last_access: u32,
     status: char,
     screen: u32,
-    title: &'a str, //known as window_name in ratpoison
-}
-
-impl WinInfo <'_>{
-    pub fn new<'a>(info: &'a str) -> Result<WinInfo, &'a str> {
-        let mut fields = info.split(',');
-        let classname = match fields.next() {
-            Some(s) => s,
-            None => return Err("Unable to extract class name"),
-        };
-        let number: u32 = match fields.next().unwrap().parse() {
-            Ok(ui) => ui,
-            Err(_) => return Err("Unable to parse window number as integer"),
-        };
-        let last_access: u32 = match fields.next().unwrap().parse() {
-            Ok(ui) => ui,
-            Err(_) => return Err("Unable to last access as integer"),
-        };
-        let status: char = match fields.next().unwrap().parse() {
-            Ok(c) => c,
-            Err(_) => return Err("Unable to status as character"),
-        };
-        let screen: u32 = match fields.next().unwrap().parse() {
-            Ok(ui) => ui,
-            Err(_) => return Err("Unable to screen as integer"),
-        };
-        let application_name = match fields.next() {
-            Some(s) => s,
-            None => return Err("Unable to extract application name"),
-        };
-        let title = match fields.next() {
-            Some(s) => s,
-            None => return Err("Unable to extract application name"),
-        };
-        Ok(
-        WinInfo{
-            classname,
-            application_name,
-            number,
-            last_access,
-            status,
-            screen,
-            title,
-        })
-    }
+    application_name: String,
+    title: String, //known as window_name in ratpoison
 }
 
 fn main() {
@@ -75,13 +34,21 @@ fn main() {
         process::exit(0);
     }
 
-    let windows_with_same_class = output.lines()
-        .map(WinInfo::new)
-        .filter_map(Result::ok)
-        .filter(|w| w.classname.starts_with(&search_for_class));
+    let mut windows_with_same_class = Vec::new();
 
+    let mut rdr = csv::ReaderBuilder::new()
+        .has_headers(false)
+        .from_reader(output.as_bytes());
+
+    for record in rdr.deserialize() {
+        let winfo: WinInfo = record.unwrap();
+        if winfo.classname.starts_with(&search_for_class) {
+            windows_with_same_class.push(winfo);
+        }
+    }
 
     let window_searched_for = windows_with_same_class
+        .iter()
         .max_by_key(|w| w.last_access);
 
 
