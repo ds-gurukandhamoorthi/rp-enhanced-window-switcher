@@ -3,21 +3,21 @@ use std::process::Command;
 use std::process;
 
 #[derive(Debug)]
-struct WinInfo {
-    classname: String,
-    application_name: String,
+struct WinInfo <'a> {
+    classname: &'a str,
+    application_name: &'a str,
     number: u32,
     last_access: u32,
     status: char,
     screen: u32,
-    title: String, //known as window_name in ratpoison
+    title: &'a str, //known as window_name in ratpoison
 }
 
-impl WinInfo {
-    pub fn new(info: &str) -> Result<WinInfo, &'static str> {
+impl WinInfo <'_>{
+    pub fn new<'a>(info: &'a str) -> Result<WinInfo, &'a str> {
         let mut fields = info.split(',');
         let classname = match fields.next() {
-            Some(s) => s.to_string(),
+            Some(s) => s,
             None => return Err("Unable to extract class name"),
         };
         let number: u32 = match fields.next().unwrap().parse() {
@@ -37,11 +37,11 @@ impl WinInfo {
             Err(_) => return Err("Unable to screen as integer"),
         };
         let application_name = match fields.next() {
-            Some(s) => s.to_string(),
+            Some(s) => s,
             None => return Err("Unable to extract application name"),
         };
         let title = match fields.next() {
-            Some(s) => s.to_string(),
+            Some(s) => s,
             None => return Err("Unable to extract application name"),
         };
         Ok(
