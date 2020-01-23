@@ -25,7 +25,7 @@ fn main() {
     let extra_args: Vec<String> = args.collect();
 
 
-    let output = Command::new("ratpoison").arg("-c").arg("windows %c,%n,%l,%s,%S,%a,%t").output();
+    let output = Command::new("ratpoison").arg("-c").arg("windows %c\t%n\t%l\t%s\t%S\t%a\t%t").output();
     let output = output.unwrap();
     let output = String::from_utf8_lossy(output.stdout.as_slice());
 
@@ -38,6 +38,7 @@ fn main() {
 
     let mut rdr = csv::ReaderBuilder::new()
         .has_headers(false)
+        .delimiter(b'\t')
         .from_reader(output.as_bytes());
 
     for record in rdr.deserialize() {
