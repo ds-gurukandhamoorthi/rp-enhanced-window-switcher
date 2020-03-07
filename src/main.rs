@@ -1,8 +1,9 @@
-use std::env;
 use std::process::Command;
 use std::process;
 
 use serde::Deserialize;
+
+use clap::{Arg, App};
 
 //order is important as w use serde and csv format with no headers
 #[derive(Debug, Deserialize)]
@@ -17,13 +18,32 @@ struct WinInfo {
 }
 
 fn main() {
-    let mut args = env::args();
-    args.next();
+    let matches = App::new("Enhanced Window Switcher")
+        .about("Switch windows in Ratpoison wm")
+        .arg(Arg::with_name("search_for_class")
+            .short("c")
+            .long("classname")
+            .takes_value(true)
+            .help("classname of the window to switch to (r)aise"))
+        .arg(Arg::with_name("program_to_execute")
+            .short("e")
+            .long("execute-with")
+            .takes_value(true)
+            .help("program to execute/(r)un"))
+        .arg(Arg::with_name("extra_args")
+            .long("extra")
+            .takes_value(true)
+            .required(false)
+            .min_values(1)
+            .help("optional extra arguments for the program"))
+        .get_matches();
 
-    let search_for_class = args.next().unwrap();
-    let program_to_execute = args.next().unwrap();
-    let extra_args: Vec<String> = args.collect();
-
+    let search_for_class = matches.value_of("search_for_class").unwrap();
+    let program_to_execute = matches.value_of("program_to_execute").unwrap();
+    let extra_args: Vec<_> = match matches.values_of("extra_args") {
+        Some(v) => v.collect(),
+        _ => vec![]
+    };
 
     let output = Command::new("ratpoison").arg("-c").arg("windows %c\t%n\t%l\t%s\t%S\t%a\t%t").output();
     let output = output.unwrap();
