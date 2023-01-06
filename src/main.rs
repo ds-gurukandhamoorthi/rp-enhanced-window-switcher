@@ -4,6 +4,7 @@ use std::process;
 use serde::Deserialize;
 
 use clap::{self, Arg, ArgAction};
+use clap::parser::ArgMatches;
 
 //order is important as w use serde and csv format with no headers
 #[derive(Debug, Deserialize)]
@@ -18,8 +19,10 @@ struct WinInfo {
 }
 
 fn main() {
+
     let app = clap::Command::new("Enhanced Window Switcher")
         .about("Switch windows in Ratpoison wm")
+        .subcommand_required(true)
         .subcommand(clap::Command::new("run-or-raise")
                     .about("Raises a window or runs a given command")
                     .arg(Arg::new("search_for_class")
@@ -38,6 +41,11 @@ fn main() {
     let matches = app.get_matches();
 
     if let Some(("run-or-raise", ror_matches)) = matches.subcommand() {
+        run_or_raise(ror_matches);
+    }
+}
+
+fn run_or_raise(ror_matches: &ArgMatches) {
 
         let search_for_class = ror_matches.get_one::<String>("search_for_class").unwrap();
         let program_to_execute = ror_matches.get_one::<String>("program_to_execute").unwrap();
@@ -84,5 +92,4 @@ fn main() {
             },
             None => {Command::new(program_to_execute).args(&extra_args).spawn().expect("Failed to open program");},
         }
-    }
 }
