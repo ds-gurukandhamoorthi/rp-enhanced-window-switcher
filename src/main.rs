@@ -87,7 +87,7 @@ fn run_or_raise(ror_matches: &ArgMatches) {
         match window_searched_for {
             Some(window) => {
                 let window_number = window.number;
-                let rp_command = format!("select {}", window_number);
+                let rp_command = format!("select {window_number}");
                 Command::new("ratpoison").arg("-c").arg(rp_command).output().expect("Failed to switch windows in Ratpoison");
             },
             None => {Command::new(program_to_execute).args(&extra_args).spawn().expect("Failed to open program");},
